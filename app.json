@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Edorapad",
+    "slug": "edorapad",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "edorapad",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.edorapad.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Edorapad requires camera access for faculty/student verification and profile photos.",
+        "NSMicrophoneUsageDescription": "Edorapad requires microphone access for online live lecture participation."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#3E7B74",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "com.edorapad.app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "RECEIVE_BOOT_COMPLETED",
+        "NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#3E7B74"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#3E7B74",
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a42aaca1-0382-48be-9795-7167a7970e2d"
+      }
+    },
+    "owner": "vavix"
+  }
+}
