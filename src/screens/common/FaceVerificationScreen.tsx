@@ -120,18 +120,27 @@ export const FaceVerificationScreen = ({ onVerified }: { onVerified: () => void 
     setErrorMsg('');
 
     try {
+      // Use quality: 0.3 without skipProcessing to compress the image down from 20MB to ~100KB,
+      // avoiding Nginx payload rejection and network timeout drops.
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.7,
+        quality: 0.3,
         base64: true,
-        skipProcessing: true,
+        skipProcessing: false,
       });
 
       if (!photo?.base64) throw new Error('Failed to capture image.');
-      const base64Image = `data:image/jpeg;base64,${photo.base64}`;
+      const base64Image = photo.base64.startsWith('data:')
+        ? photo.base64
+        : `data:image/jpeg;base64,${photo.base64}`;
+
+      const userId = user?.id || user?._id;
 
       if (!isEnrolled) {
         // ── First time: enrol face ──────────────────────────────────────────
-        const res = await authApi.faceInit({ uri: photo.uri, base64: base64Image });
+        const res = await authApi.faceInit(
+          { uri: photo.uri, base64: base64Image },
+          { userId, token: token || undefined }
+        );
         if (res.success) {
           dispatch(setUserFaceState({ isFaceEnrolled: true }));
           showSuccess();
@@ -141,7 +150,10 @@ export const FaceVerificationScreen = ({ onVerified }: { onVerified: () => void 
         }
       } else {
         // ── Subsequent: verify face ─────────────────────────────────────────
-        const res = await authApi.faceVerify(base64Image);
+        const res = await authApi.faceVerify(
+          base64Image,
+          { userId, token: token || undefined }
+        );
         if (res.success) {
           showSuccess();
         } else {
@@ -150,10 +162,16 @@ export const FaceVerificationScreen = ({ onVerified }: { onVerified: () => void 
         }
       }
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || err?.message || 'Verification failed. Please retry.');
+      console.error('[FaceVerificationScreen] capture/verify error:', err);
+      const serverMessage = err?.response?.data?.message || err?.response?.data?.error;
+      const statusText = err?.response?.status ? ` (HTTP ${err.response.status})` : '';
+      setErrorMsg(
+        serverMessage ||
+        (err?.message ? `${err.message}${statusText}` : 'Verification failed. Please retry.')
+      );
       setStatus('error');
     }
-  }, [cameraRef, status, isEnrolled, dispatch, showSuccess]);
+  }, [cameraRef, status, isEnrolled, dispatch, showSuccess, user, token]);
 
   const handleRetry = () => { setStatus('idle'); setErrorMsg(''); };
 

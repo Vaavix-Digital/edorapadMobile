@@ -49,7 +49,8 @@ export const authApi = {
    * POST /api/auth/face-init
    */
   faceInit: async (
-    imageInput: string | { uri?: string; base64?: string }
+    imageInput: string | { uri?: string; base64?: string },
+    extra?: { userId?: string; token?: string }
   ): Promise<{ success: boolean; message: string }> => {
     const formData = new FormData();
     const fileUri = typeof imageInput === 'object' ? imageInput.uri : undefined;
@@ -69,8 +70,20 @@ export const authApi = {
       } as any);
     }
 
+    if (extra?.userId) {
+      formData.append('userId', extra.userId);
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'multipart/form-data',
+    };
+    if (extra?.token) {
+      headers.Authorization = `Bearer ${extra.token}`;
+    }
+
     const response = await api.post(API_ENDPOINTS.AUTH.FACE_INIT, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers,
+      timeout: 30000,
     });
     return response.data;
   },
@@ -79,9 +92,28 @@ export const authApi = {
    * Subsequent face verification — sends captured base64 image
    * POST /api/auth/face-verify
    */
-  faceVerify: async (imageBase64: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(API_ENDPOINTS.AUTH.VERIFY_FACE, { capturedImage: imageBase64 });
+  faceVerify: async (
+    imageBase64: string,
+    extra?: { userId?: string; token?: string }
+  ): Promise<{ success: boolean; message: string }> => {
+    const headers: Record<string, string> = {};
+    if (extra?.token) {
+      headers.Authorization = `Bearer ${extra.token}`;
+    }
+
+    const response = await api.post(
+      API_ENDPOINTS.AUTH.VERIFY_FACE,
+      {
+        capturedImage: imageBase64,
+        ...(extra?.userId ? { userId: extra.userId } : {}),
+      },
+      {
+        headers,
+        timeout: 30000,
+      }
+    );
     return response.data;
   },
 };
+
 

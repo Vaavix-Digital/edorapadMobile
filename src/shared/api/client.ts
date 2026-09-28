@@ -25,7 +25,7 @@ export const configureApiClient = (options: {
 export const createApiClient = (baseURL?: string): AxiosInstance => {
   const instance = axios.create({
     baseURL: baseURL || apiBaseUrl,
-    timeout: 15000,
+    timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json'
