@@ -42,5 +42,46 @@ export const authApi = {
   registerDeviceToken: async (deviceData: { token: string; platform: string; userId: string }): Promise<any> => {
     const response = await api.post(API_ENDPOINTS.AUTH.REGISTER_DEVICE, deviceData);
     return response.data;
-  }
+  },
+
+  /**
+   * First-time face enrolment — sends face image as multipart/form-data
+   * POST /api/auth/face-init
+   */
+  faceInit: async (
+    imageInput: string | { uri?: string; base64?: string }
+  ): Promise<{ success: boolean; message: string }> => {
+    const formData = new FormData();
+    const fileUri = typeof imageInput === 'object' ? imageInput.uri : undefined;
+    const base64Data = typeof imageInput === 'string' ? imageInput : imageInput.base64;
+
+    if (fileUri) {
+      formData.append('face', {
+        uri: fileUri,
+        type: 'image/jpeg',
+        name: 'face.jpg',
+      } as any);
+    } else if (base64Data) {
+      formData.append('face', {
+        uri: base64Data,
+        type: 'image/jpeg',
+        name: 'face.jpg',
+      } as any);
+    }
+
+    const response = await api.post(API_ENDPOINTS.AUTH.FACE_INIT, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  /**
+   * Subsequent face verification — sends captured base64 image
+   * POST /api/auth/face-verify
+   */
+  faceVerify: async (imageBase64: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(API_ENDPOINTS.AUTH.VERIFY_FACE, { capturedImage: imageBase64 });
+    return response.data;
+  },
 };
+

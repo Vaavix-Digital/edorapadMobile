@@ -14,6 +14,7 @@ import { NotificationsScreen } from '../screens/common/NotificationsScreen';
 import { ProfileScreen } from '../screens/common/ProfileScreen';
 import { InstituteCommunityScreen } from '../screens/institute/InstituteCommunityScreen';
 import { TutorSettingsScreen } from '../screens/tutor/TutorSettingsScreen';
+import { PricingPlansScreen } from '../screens/common/PricingPlansScreen';
 import { THEME } from '../shared/constants/theme';
 import { useAppSelector } from '../store';
 import { normalizeUserRole } from '../store/slices/authSlice';
@@ -35,6 +36,7 @@ const TutorStack = () => (
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="Settings" component={TutorSettingsScreen} />
+    <Stack.Screen name="PricingPlans" component={PricingPlansScreen} />
   </Stack.Navigator>
 );
 

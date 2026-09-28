@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppSelector, useAppDispatch } from '../store';
-import { setInitialized, normalizeUserRole } from '../store/slices/authSlice';
+import { setInitialized, normalizeUserRole, setUserFaceState } from '../store/slices/authSlice';
 import { USER_ROLES } from '../shared/types';
 import { configureApiClient } from '../shared/api/client';
 import { mobileTokenProvider } from '../services/storage';
@@ -13,12 +13,23 @@ import { TutorTabNavigator } from './TutorTabNavigator';
 import { StudentTabNavigator } from './StudentTabNavigator';
 import { ParentTabNavigator } from './ParentTabNavigator';
 import { AccountsTabNavigator } from './AccountsTabNavigator';
+import { FaceVerificationScreen } from '../screens/common/FaceVerificationScreen';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Roles that require face verification before reaching their dashboard.
+ * Matches the web implementation: Online Tutor, Offline Tutor, Accounts & Marketing.
+ */
+const FACE_VERIFY_ROLES = [
+  USER_ROLES.ONLINETUTOR,
+  USER_ROLES.OFFLINETUTOR,
+  USER_ROLES.ACCOUNTS_MARKETING,
+];
+
 export const RootNavigator = () => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, role, isInitialized } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, role, isInitialized, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     // Configure API client with mobile SecureStore token provider
@@ -29,8 +40,15 @@ export const RootNavigator = () => {
     dispatch(setInitialized());
   }, [dispatch]);
 
-  const renderRoleNavigator = () => {
-    const normalizedRole = normalizeUserRole(role);
+  const normalizedRole = normalizeUserRole(role || user?.role);
+
+  /** Whether the current user must pass face verification before the dashboard */
+  const needsFaceVerification =
+    isAuthenticated &&
+    FACE_VERIFY_ROLES.includes(normalizedRole as any) &&
+    !user?.isFaceVerified;
+
+  const getRoleNavigator = () => {
     switch (normalizedRole) {
       case USER_ROLES.ADMIN:
       case USER_ROLES.SUPER_ADMIN:
@@ -38,6 +56,7 @@ export const RootNavigator = () => {
         return <Stack.Screen name="InstituteApp" component={InstituteTabNavigator} />;
       case USER_ROLES.ONLINETUTOR:
       case USER_ROLES.OFFLINETUTOR:
+      case USER_ROLES.COURSE_CREATOR:
         return <Stack.Screen name="TutorApp" component={TutorTabNavigator} />;
       case USER_ROLES.PARENT:
         return <Stack.Screen name="ParentApp" component={ParentTabNavigator} />;
@@ -53,9 +72,22 @@ export const RootNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
+          /* ── Not logged in: show auth flows ── */
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : needsFaceVerification ? (
+          /* ── Logged in but face not verified: gate with face auth ── */
+          <Stack.Screen name="FaceVerification">
+            {() => (
+              <FaceVerificationScreen
+                onVerified={() => {
+                  dispatch(setUserFaceState({ isFaceVerified: true }));
+                }}
+              />
+            )}
+          </Stack.Screen>
         ) : (
-          renderRoleNavigator()
+          /* ── Verified: show role dashboard ── */
+          getRoleNavigator()
         )}
       </Stack.Navigator>
     </NavigationContainer>

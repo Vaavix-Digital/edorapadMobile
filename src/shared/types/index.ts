@@ -59,6 +59,9 @@ export interface User {
   staffCustomId?: string;
   batchId?: string;
   departmentId?: string;
+  isFaceEnrolled?: boolean;
+  isFaceVerified?: boolean;
+  requiresFaceVerification?: boolean;
 }
 
 export interface AuthResponse {

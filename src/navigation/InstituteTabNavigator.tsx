@@ -16,6 +16,7 @@ import { InstituteSettingsScreen } from '../screens/institute/InstituteSettingsS
 import { InstituteCommunityScreen } from '../screens/institute/InstituteCommunityScreen';
 import { InstituteProfileScreen } from '../screens/institute/InstituteProfileScreen';
 import { NotificationsScreen } from '../screens/common/NotificationsScreen';
+import { PricingPlansScreen } from '../screens/common/PricingPlansScreen';
 import { THEME } from '../shared/constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -36,6 +37,7 @@ const InstituteStack = () => (
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="Profile" component={InstituteProfileScreen} />
     <Stack.Screen name="Settings" component={InstituteSettingsScreen} />
+    <Stack.Screen name="PricingPlans" component={PricingPlansScreen} />
   </Stack.Navigator>
 );
 

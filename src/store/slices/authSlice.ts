@@ -34,7 +34,19 @@ export const normalizeUserRole = (rawRole: any): UserRole => {
   if (lower === 'offlinetutor' || lower === 'offline tutor' || lower === 'offline_tutor') {
     return USER_ROLES.OFFLINETUTOR;
   }
-  if (lower === 'accountsmarketing' || lower.includes('account') || lower.includes('marketing')) {
+  // Generic tutor / teacher / faculty defaults to ONLINE_TUTOR unless specified
+  if (lower === 'tutor' || lower === 'faculty' || lower === 'teacher') {
+    return USER_ROLES.ONLINETUTOR;
+  }
+  if (
+    lower === 'accountsmarketing' ||
+    lower === 'accounts_marketing' ||
+    lower === 'account_&_marketing' ||
+    lower.includes('account') ||
+    lower.includes('marketing') ||
+    lower.includes('management') ||
+    lower.includes('manager')
+  ) {
     return USER_ROLES.ACCOUNTS_MARKETING;
   }
   if (lower === 'coursecreator' || lower === 'course creator' || lower === 'course_creator') {
@@ -71,8 +83,14 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue('Invalid login response from server');
       }
 
+      // If credentials explicitly specified role (e.g. from TutorLoginScreen selecting online vs offline),
+      // prefer credentials.role if server role is generic ('tutor', 'faculty', etc.) or missing:
+      const rawServerRole = user.role ? String(user.role).trim().toLowerCase() : '';
+      const isGenericServerRole = !rawServerRole || rawServerRole === 'tutor' || rawServerRole === 'faculty' || rawServerRole === 'teacher';
+      const effectiveRole = (isGenericServerRole && credentials.role) ? credentials.role : (user.role || credentials.role);
+
       // Normalize role consistently
-      const normalizedRole = normalizeUserRole(user.role || credentials.role);
+      const normalizedRole = normalizeUserRole(effectiveRole);
       user.role = normalizedRole;
 
       // Save token securely
@@ -107,7 +125,20 @@ const authSlice = createSlice({
       action: PayloadAction<{ user: User; token: string; role: UserRole }>
     ) => {
       const normalizedRole = normalizeUserRole(action.payload.role || action.payload.user?.role);
-      state.user = { ...action.payload.user, role: normalizedRole };
+      const requiresVerification = (
+        normalizedRole === USER_ROLES.ONLINETUTOR ||
+        normalizedRole === USER_ROLES.OFFLINETUTOR ||
+        normalizedRole === USER_ROLES.ACCOUNTS_MARKETING
+      );
+
+      state.user = {
+        ...action.payload.user,
+        role: normalizedRole,
+        isFaceEnrolled: action.payload.user?.isFaceEnrolled ?? false,
+        isFaceVerified: action.payload.user?.isFaceVerified !== undefined
+          ? action.payload.user.isFaceVerified
+          : (requiresVerification ? false : true),
+      };
       state.token = action.payload.token;
       state.role = normalizedRole;
       state.isAuthenticated = true;
@@ -125,7 +156,15 @@ const authSlice = createSlice({
       state.role = null;
       state.isAuthenticated = false;
       state.error = null;
-    }
+    },
+    setUserFaceState: (
+      state,
+      action: PayloadAction<{ isFaceEnrolled?: boolean; isFaceVerified?: boolean }>
+    ) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -136,9 +175,22 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user;
+
+        const role = action.payload.role;
+        const requiresVerification = (
+          role === USER_ROLES.ONLINETUTOR ||
+          role === USER_ROLES.OFFLINETUTOR ||
+          role === USER_ROLES.ACCOUNTS_MARKETING
+        );
+
+        state.user = {
+          ...action.payload.user,
+          // Preserve enrolled status from DB, but gate face verification for this login session
+          isFaceEnrolled: action.payload.user?.isFaceEnrolled ?? false,
+          isFaceVerified: requiresVerification ? false : true,
+        };
         state.token = action.payload.token;
-        state.role = action.payload.role;
+        state.role = role;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -168,5 +220,5 @@ const authSlice = createSlice({
   }
 });
 
-export const { setCredentials, setInitialized, clearAuthError, forceLogout } = authSlice.actions;
+export const { setCredentials, setInitialized, clearAuthError, forceLogout, setUserFaceState } = authSlice.actions;
 export default authSlice.reducer;

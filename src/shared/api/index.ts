@@ -9,3 +9,4 @@ export * from './financeApi';
 export * from './notificationsApi';
 export * from './certificateApi';
 export * from './accountApi';
+export * from './pricingApi';

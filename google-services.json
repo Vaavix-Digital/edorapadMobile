@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392496995218",
+    "project_id": "edorapad-f0a25",
+    "storage_bucket": "edorapad-f0a25.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392496995218:android:20b9a72425cc7e323abf4b",
+        "android_client_info": {
+          "package_name": "com.edorapad.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQHGMR-E_6Jj8WjMx-NfWDmOJyV647_ZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

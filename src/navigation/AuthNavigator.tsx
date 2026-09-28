@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { TutorLoginScreen } from '../screens/auth/TutorLoginScreen';
 import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
+import { PricingPlansScreen } from '../screens/common/PricingPlansScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,7 @@ export const AuthNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="TutorLogin" component={TutorLoginScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="PricingPlans" component={PricingPlansScreen} />
     </Stack.Navigator>
   );
 };

@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.edorapad.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "Edorapad requires camera access for faculty/student verification and profile photos.",
         "NSMicrophoneUsageDescription": "Edorapad requires microphone access for online live lecture participation."
@@ -21,6 +22,7 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.edorapad.app",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",

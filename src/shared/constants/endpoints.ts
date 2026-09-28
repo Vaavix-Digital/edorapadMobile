@@ -10,7 +10,8 @@ export const API_ENDPOINTS = {
     REFRESH: '/api/auth/refresh',
     FORGOT_PASSWORD: '/api/auth/forgot-password',
     RESET_PASSWORD: '/api/auth/reset-password',
-    VERIFY_FACE: '/api/auth/verify-face',
+    VERIFY_FACE: '/api/auth/face-verify',
+    FACE_INIT: '/api/auth/face-init',
     REGISTER_DEVICE: '/api/notifications/register-device'
   },
   INSTITUTE: {
@@ -189,5 +190,9 @@ export const API_ENDPOINTS = {
     CREATE_ORDER: '/api/payments/create-order',
     VERIFY: '/api/payments/verify',
     INVOICE_DATA: (transactionId: string) => `/api/payments/invoice/${transactionId}`
+  },
+  PRICING: {
+    INSTITUTE: '/api/pricing/institute',
+    COURSE_CREATOR: '/api/pricing/course-creator',
   }
 };
