@@ -3,10 +3,24 @@ import { API_ENDPOINTS } from '../constants/endpoints';
 import { User, AuthResponse } from '../types';
 
 export const authApi = {
-  login: async (credentials: { email: string; password: string; role?: string }): Promise<AuthResponse> => {
+  login: async (credentials: {
+    email: string;
+    password: string;
+    role?: string;
+    fcmToken?: string;
+    platform?: string;
+  }): Promise<AuthResponse> => {
     // Backend expects 'identifier', not 'email'
-    const { email, ...rest } = credentials;
-    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, { identifier: email, ...rest });
+    const { email, fcmToken, platform, ...rest } = credentials;
+    const payload: Record<string, any> = {
+      identifier: email,
+      ...rest,
+    };
+    if (fcmToken) {
+      payload.fcmToken = fcmToken;
+      payload.platform = platform || 'android';
+    }
+    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, payload);
     return response.data;
   },
 
@@ -15,9 +29,9 @@ export const authApi = {
     return response.data;
   },
 
-  logout: async (): Promise<boolean> => {
+  logout: async (data?: { fcmToken?: string | null }): Promise<boolean> => {
     try {
-      await api.post(API_ENDPOINTS.AUTH.LOGOUT);
+      await api.post(API_ENDPOINTS.AUTH.LOGOUT, data?.fcmToken ? { fcmToken: data.fcmToken } : {});
       return true;
     } catch {
       return true;
@@ -39,8 +53,8 @@ export const authApi = {
     return response.data;
   },
 
-  registerDeviceToken: async (deviceData: { token: string; platform: string; userId: string }): Promise<any> => {
-    const response = await api.post(API_ENDPOINTS.AUTH.REGISTER_DEVICE, deviceData);
+  registerDeviceToken: async (deviceData: { fcmToken: string; platform: string }): Promise<any> => {
+    const response = await api.post(API_ENDPOINTS.PUSH.DEVICE_TOKEN, deviceData);
     return response.data;
   },
 

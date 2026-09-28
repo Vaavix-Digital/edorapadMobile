@@ -12,7 +12,10 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/api/auth/reset-password',
     VERIFY_FACE: '/api/auth/face-verify',
     FACE_INIT: '/api/auth/face-init',
-    REGISTER_DEVICE: '/api/notifications/register-device'
+    REGISTER_DEVICE: '/api/push/device-token'
+  },
+  PUSH: {
+    DEVICE_TOKEN: '/api/push/device-token'
   },
   INSTITUTE: {
     STATS: '/api/institute/dashboard/stats',

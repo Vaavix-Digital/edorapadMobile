@@ -14,6 +14,7 @@ import { StudentTabNavigator } from './StudentTabNavigator';
 import { ParentTabNavigator } from './ParentTabNavigator';
 import { AccountsTabNavigator } from './AccountsTabNavigator';
 import { FaceVerificationScreen } from '../screens/common/FaceVerificationScreen';
+import { initPushTokenListeners, syncPushTokenWithBackend } from '../services/push';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,7 +39,19 @@ export const RootNavigator = () => {
       tokenProvider: mobileTokenProvider,
     });
     dispatch(setInitialized());
-  }, [dispatch]);
+
+    // Step 6: Listen for Firebase token rotation / refresh
+    const unsubscribeTokenRefresh = initPushTokenListeners();
+
+    // Step 7: Sync device token with backend on app start for existing authenticated sessions
+    if (isAuthenticated) {
+      syncPushTokenWithBackend();
+    }
+
+    return () => {
+      unsubscribeTokenRefresh();
+    };
+  }, [dispatch, isAuthenticated]);
 
   const normalizedRole = normalizeUserRole(role || user?.role);
 

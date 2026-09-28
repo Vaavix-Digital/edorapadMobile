@@ -46,9 +46,8 @@ export const notificationService = {
       // Register with backend
       if (userId) {
         await authApi.registerDeviceToken({
-          token,
-          platform: Platform.OS,
-          userId
+          fcmToken: token,
+          platform: Platform.OS
         }).catch(err => console.warn('Could not register device token with backend:', err));
       }
 

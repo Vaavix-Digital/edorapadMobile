@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../shared/api/authApi';
 import { User, UserRole, USER_ROLES } from '../../shared/types';
 import { storageService } from '../../services/storage';
+import { getFcmToken, saveFcmToken, loadFcmToken, devicePlatform } from '../../services/push';
 
 interface AuthState {
   user: User | null;
@@ -75,12 +76,25 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string; role?: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.login(credentials);
+      // Step 4: Obtain FCM token before login
+      const fcmToken = await getFcmToken().catch(() => null);
+
+      const response = await authApi.login({
+        ...credentials,
+        ...(fcmToken ? { fcmToken, platform: devicePlatform } : {}),
+      });
+
       const user = response.data || response.user;
       const token = response.accessToken || response.token;
 
       if (!user || !token) {
         return rejectWithValue('Invalid login response from server');
+      }
+
+      // Step 5: Save FCM token locally
+      const savedToken = (response as any).data?.fcmToken || fcmToken;
+      if (savedToken) {
+        await saveFcmToken(savedToken).catch(() => {});
       }
 
       // If credentials explicitly specified role (e.g. from TutorLoginScreen selecting online vs offline),
@@ -107,7 +121,9 @@ export const loginUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   try {
-    await authApi.logout();
+    const fcmToken = await loadFcmToken().catch(() => null);
+    await authApi.logout(fcmToken ? { fcmToken } : undefined);
+    await saveFcmToken(null).catch(() => {});
   } catch {
     // Ignore server error on logout
   } finally {
