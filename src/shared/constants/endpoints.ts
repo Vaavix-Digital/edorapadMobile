@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: '/api/auth/reset-password',
     VERIFY_FACE: '/api/auth/face-verify',
     FACE_INIT: '/api/auth/face-init',
+    FACE_CHALLENGE: '/api/auth/face-challenge',
     REGISTER_DEVICE: '/api/push/device-token'
   },
   PUSH: {
