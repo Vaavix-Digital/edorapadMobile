@@ -24,9 +24,9 @@ import {
   ActivityIndicator,
   StyleSheet,
   Modal,
-  Image,
   Linking,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useAppDispatch } from '../../store';
 import { googleLogin } from '../../store/slices/authSlice';
 import { THEME } from '../../shared/constants/theme';
@@ -227,6 +227,27 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     }
   };
 
+const GoogleIcon = ({ size = 20 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 120 120">
+    <Path
+      d="M117.6,61.36 C117.6,57.11 117.22,53.02 116.51,49.09 L60,49.09 L60,72.3 L92.29,72.3 C90.9,79.8 86.67,86.15 80.32,90.41 L80.32,105.46 L99.71,105.46 C111.05,95.02 117.6,79.64 117.6,61.36 Z"
+      fill="#4285F4"
+    />
+    <Path
+      d="M60,120 C76.2,120 89.78,114.63 99.71,105.46 L80.32,90.41 C74.95,94.01 68.07,96.14 60,96.14 C44.37,96.14 31.15,85.58 26.43,71.4 L6.38,71.4 L6.38,86.95 C16.25,106.55 36.55,120 60,120 Z"
+      fill="#34A853"
+    />
+    <Path
+      d="M26.43,71.4 C25.23,67.8 24.55,63.95 24.55,60 C24.55,56.05 25.23,52.2 26.43,48.6 L26.43,33.05 L6.38,33.05 C2.32,41.15 0,50.32 0,60 C0,69.68 2.32,78.85 6.38,86.95 L26.43,71.4 Z"
+      fill="#FBBC05"
+    />
+    <Path
+      d="M60,23.86 C68.81,23.86 76.72,26.89 82.94,32.84 L100.15,15.63 C89.75,5.95 76.17,0 60,0 C36.55,0 16.25,13.45 6.38,33.05 L26.43,48.6 C31.15,34.42 44.37,23.86 60,23.86 Z"
+      fill="#EA4335"
+    />
+  </Svg>
+);
+
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <>
@@ -239,11 +260,7 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
         {busy ? (
           <ActivityIndicator size="small" color={THEME.colors.textSecondary} />
         ) : (
-          <Image
-            source={require('./google-logo.png')}
-            style={styles.googleLogo}
-            resizeMode="contain"
-          />
+          <GoogleIcon size={20} />
         )}
         <Text style={styles.googleButtonText}>
           {busy ? 'Signing in…' : 'Continue with Google'}
@@ -325,7 +342,6 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.sm,
   },
   disabled:          { opacity: 0.5 },
-  googleLogo:        { width: 20, height: 20 },
   googleButtonText:  { fontSize: 15, fontWeight: '600', color: THEME.colors.textPrimary },
   errorText:         { marginTop: 8, textAlign: 'center', fontSize: 13, color: THEME.colors.error },
   overlay:           { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', padding: 20 },
