@@ -21,6 +21,7 @@ import {
   Smile,
   RefreshCw,
 } from 'lucide-react-native';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { setUserFaceState, logoutUser } from '../../store/slices/authSlice';
 import { authApi } from '../../shared/api/authApi';
@@ -83,6 +84,9 @@ export const FaceVerificationScreen = ({
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<ScreenPhase>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [failedAttempts, setFailedAttempts] = useState(0);
+
+  const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
 
   // Challenge / step state
   const [steps, setSteps] = useState<LivenessStep[]>([]);
@@ -102,6 +106,29 @@ export const FaceVerificationScreen = ({
   const collectedFramesRef = useRef<string[]>([]);
 
   const successAnim = useRef(new Animated.Value(0)).current;
+
+  // Set camera picture size on ready to keep frames ~640px wide without extra native libraries
+  const handleCameraReady = useCallback(async () => {
+    try {
+      if (cameraRef.current && (cameraRef.current as any).getAvailablePictureSizesAsync) {
+        const sizes: string[] = await (cameraRef.current as any).getAvailablePictureSizesAsync();
+        console.log('[FaceVerificationScreen] Available picture sizes:', sizes);
+        if (sizes && sizes.length > 0) {
+          const preferred =
+            sizes.find((s) => s.startsWith('640x') || s.endsWith('x640')) ||
+            sizes.find((s) => s.startsWith('720x') || s.endsWith('x720') || s.startsWith('800x') || s.endsWith('x800')) ||
+            sizes.find((s) => s.startsWith('1280x') || s.endsWith('x720')) ||
+            sizes[sizes.length - 1];
+          if (preferred) {
+            console.log('[FaceVerificationScreen] Selected pictureSize:', preferred);
+            setPictureSize(preferred);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[FaceVerificationScreen] getAvailablePictureSizesAsync error:', err);
+    }
+  }, []);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -158,14 +185,18 @@ export const FaceVerificationScreen = ({
         );
         // ────────────────────────────────────────────────────────────────────
 
+        console.log('[FaceVerificationScreen] isEnrolled:', isEnrolled, '-> calling:', isEnrolled ? 'faceVerify' : 'faceInit');
+
         if (!isEnrolled) {
           // First-time → enrol face
           const res = await authApi.faceInit(payload, extra);
           if (res.success) {
+            setFailedAttempts(0);
             // Mark both enrolled AND verified so the navigation gate lifts
             dispatch(setUserFaceState({ isFaceEnrolled: true, isFaceVerified: true }));
             triggerSuccess();
           } else {
+            setFailedAttempts((prev) => prev + 1);
             setErrorMsg(res.message || 'Face enrolment failed. Please try again.');
             setPhase('error');
           }
@@ -173,15 +204,26 @@ export const FaceVerificationScreen = ({
           // Already enrolled → verify face
           const res = await authApi.faceVerify(payload, extra);
           if (res.success) {
+            setFailedAttempts(0);
             dispatch(setUserFaceState({ isFaceVerified: true }));
             triggerSuccess();
           } else {
+            setFailedAttempts((prev) => prev + 1);
             setErrorMsg(res.message || 'Biometric mismatch. Please try again.');
             setPhase('error');
           }
         }
       } catch (err: any) {
         console.error('[FaceVerificationScreen] submit error:', err);
+        console.log('[FaceVerificationScreen] backend error response:', JSON.stringify(err?.response?.data, null, 2));
+        setFailedAttempts((prev) => prev + 1);
+
+        // Guide page 13: 403 FEATURE_NOT_IN_PLAN -> Skip face screen and open dashboard
+        if (err?.response?.status === 403) {
+          onVerified();
+          return;
+        }
+
         const serverMessage =
           err?.response?.data?.message || err?.response?.data?.error;
         const statusText = err?.response?.status
@@ -196,7 +238,7 @@ export const FaceVerificationScreen = ({
         setPhase('error');
       }
     },
-    [isEnrolled, user, token, dispatch, triggerSuccess]
+    [isEnrolled, user, token, dispatch, triggerSuccess, onVerified]
   );
 
   // ── Capture photo for current step, then advance or submit ────────────────
@@ -206,16 +248,27 @@ export const FaceVerificationScreen = ({
       if (!cameraRef.current) throw new Error('Camera not ready.');
 
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.4,           // reduced to keep payload under server body limit
-        base64: true,
-        skipProcessing: false,  // raw unmirrored frame — no transform applied
+        quality: 0.8,
+        skipProcessing: false, // EXIF rotation applied so image is upright
       });
 
-      if (!photo?.base64) throw new Error('Camera did not return an image.');
+      if (!photo?.uri) throw new Error('Camera did not return an image.');
 
-      const frame = photo.base64.startsWith('data:')
-        ? photo.base64
-        : `data:image/jpeg;base64,${photo.base64}`;
+      // Resize frame to 640px wide, JPEG 0.75 as strictly required by server guide (Pages 5-7, 13)
+      // This produces crystal-clear ~60-80KB frames for 150-250KB total payload
+      const manipulated = await manipulateAsync(
+        photo.uri,
+        [{ resize: { width: 640 } }],
+        {
+          compress: 0.75,
+          format: SaveFormat.JPEG,
+          base64: true,
+        }
+      );
+
+      if (!manipulated.base64) throw new Error('Failed to process image frame.');
+
+      const frame = `data:image/jpeg;base64,${manipulated.base64}`;
 
       const updatedFrames = [...collectedFramesRef.current, frame];
       collectedFramesRef.current = updatedFrames;
@@ -435,6 +488,8 @@ export const FaceVerificationScreen = ({
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
         facing="front"
+        {...(pictureSize ? ({ pictureSize } as any) : {})}
+        onCameraReady={handleCameraReady}
       />
 
       {/* Dark overlay */}
@@ -571,10 +626,17 @@ export const FaceVerificationScreen = ({
       {/* Error banner */}
       {phase === 'error' && (
         <View style={styles.errorBanner}>
-          <AlertCircle size={18} color="#FCA5A5" style={{ marginRight: 8 }} />
-          <Text style={styles.errorBannerText} numberOfLines={3}>
-            {errorMsg}
-          </Text>
+          <AlertCircle size={18} color="#FCA5A5" style={{ marginRight: 8, alignSelf: 'flex-start', marginTop: 2 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.errorBannerText} numberOfLines={3}>
+              {errorMsg}
+            </Text>
+            {failedAttempts >= 3 && (
+              <Text style={styles.errorHintText}>
+                Face the camera in good light, remove glasses or a mask, and turn your head clearly when asked.
+              </Text>
+            )}
+          </View>
         </View>
       )}
 
@@ -844,6 +906,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     lineHeight: 18,
+  },
+  errorHintText: {
+    fontSize: 12,
+    color: '#FDE68A',
+    fontWeight: '500',
+    marginTop: 4,
+    lineHeight: 16,
   },
   footer: {
     paddingHorizontal: 24,

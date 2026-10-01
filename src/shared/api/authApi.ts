@@ -53,6 +53,19 @@ export const authApi = {
     return response.data;
   },
 
+  /**
+   * Sign in / sign up with Google ID token.
+   * Mirrors the web's POST /api/auth/google endpoint.
+   * A new user must supply `role`; existing users can omit it.
+   */
+  googleLogin: async (payload: {
+    credential: string;
+    role?: string;
+  }): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.GOOGLE, payload);
+    return response.data;
+  },
+
   registerDeviceToken: async (deviceData: { fcmToken: string; platform: string }): Promise<any> => {
     const response = await api.post(API_ENDPOINTS.PUSH.DEVICE_TOKEN, deviceData);
     return response.data;
@@ -142,7 +155,7 @@ export const authApi = {
           frames: payload.frames.map((f) => (f.startsWith('data:') ? f : `data:image/jpeg;base64,${f}`)),
           ...(extra?.userId ? { userId: extra.userId } : {}),
         },
-        { headers, timeout: 30000 }
+        { headers, timeout: 60000 }
       );
       const resData = response.data;
       console.log('[authApi.faceInit] Server response:', JSON.stringify(resData));
@@ -190,7 +203,7 @@ export const authApi = {
         if (reqHeaders) delete (reqHeaders as any)['Content-Type'];
         return data;
       },
-      timeout: 30000,
+      timeout: 60000,
     });
     const resData = response.data;
     console.log('[authApi.faceInit] Multipart response:', JSON.stringify(resData));
@@ -239,7 +252,7 @@ export const authApi = {
       body,
       {
         headers,
-        timeout: 30000,
+        timeout: 60000,
       }
     );
     const resData = response.data;

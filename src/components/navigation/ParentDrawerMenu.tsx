@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import {
   LayoutDashboard,
@@ -171,9 +172,11 @@ export const ParentDrawerMenu: React.FC<ParentDrawerMenuProps> = ({
           <View style={styles.logoRow}>
             {/* Edorapad branding */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>
-                ed<Text style={styles.logoAccent}>◎</Text>rapad
-              </Text>
+              <Image
+                source={require('../../../assets/edorapad-logo.png')}
+                style={styles.drawerLogoImage}
+                resizeMode="contain"
+              />
             </View>
             <TouchableOpacity
               onPress={onClose}
@@ -282,14 +285,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   logoContainer: {},
-  logoText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1A202C',
-    letterSpacing: -0.5,
-  },
-  logoAccent: {
-    color: THEME.colors.primary,
+  drawerLogoImage: {
+    width: 140,
+    height: 30,
   },
   closeBtn: {
     padding: 4,

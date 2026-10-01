@@ -44,6 +44,14 @@
         }
       ],
       [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Edorapad requires camera access for identity verification and profile photos."
@@ -61,10 +69,10 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#3E7B74",
           "sounds": []
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

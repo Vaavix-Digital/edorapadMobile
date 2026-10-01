@@ -167,7 +167,11 @@ export const AccountsDrawerMenu: React.FC<AccountsDrawerMenuProps> = ({
             {/* Logo & Close Row */}
             <View style={styles.logoRow}>
               <View style={styles.logoContainer}>
-                <Text style={styles.logoText}>ed<Text style={styles.logoAccent}>◎</Text>rapad</Text>
+                <Image
+                  source={require('../../../assets/edorapad-logo.png')}
+                  style={styles.drawerLogoImage}
+                  resizeMode="contain"
+                />
               </View>
               <TouchableOpacity onPress={handleClose} style={styles.closeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <X size={22} color={THEME.colors.textPrimary} />
@@ -273,14 +277,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   logoContainer: {},
-  logoText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1A202C',
-    letterSpacing: -0.5,
-  },
-  logoAccent: {
-    color: THEME.colors.primary,
+  drawerLogoImage: {
+    width: 140,
+    height: 30,
   },
   closeBtn: {
     padding: 4,

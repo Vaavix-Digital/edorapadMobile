@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { Mail, Lock, LogIn, ArrowLeft, BookOpen } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
 import { Input } from '../../components/common/Input';
@@ -45,10 +45,11 @@ export const TutorLoginScreen = ({ navigation }: any) => {
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <View style={styles.logoBadge}>
-              <BookOpen size={36} color="#FFF" />
-            </View>
-            <Text style={styles.brandTitle}>Teacher Portal</Text>
+            <Image
+              source={require('../../../assets/edorapad-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.subtitle}>Sign in to manage classes, attendance & students</Text>
           </View>
 
@@ -140,19 +141,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: THEME.spacing.lg,
   },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: THEME.colors.primaryDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: THEME.spacing.sm,
-  },
-  brandTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: THEME.colors.textPrimary,
+  logoImage: {
+    width: 220,
+    height: 48,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: THEME.typography.sizes.xs,

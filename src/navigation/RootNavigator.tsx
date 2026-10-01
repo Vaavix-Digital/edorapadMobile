@@ -58,7 +58,9 @@ export const RootNavigator = () => {
   /** Whether the current user must pass face verification before the dashboard */
   const needsFaceVerification =
     isAuthenticated &&
-    FACE_VERIFY_ROLES.includes(normalizedRole as any) &&
+    (user?.requiresFaceVerification !== undefined
+      ? user.requiresFaceVerification
+      : FACE_VERIFY_ROLES.includes(normalizedRole as any)) &&
     !user?.isFaceVerified;
 
   const getRoleNavigator = () => {

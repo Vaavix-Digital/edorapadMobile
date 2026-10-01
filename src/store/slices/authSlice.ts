@@ -119,6 +119,39 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+/**
+ * Sign in / sign up with a Google ID token.
+ * - Existing users are signed in immediately.
+ * - New users receive { code: 'GOOGLE_ROLE_REQUIRED' } — call again with `role` to create the account.
+ */
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (payload: { credential: string; role?: string }, { rejectWithValue }) => {
+    try {
+      const response = await authApi.googleLogin(payload);
+      const user = response.data || response.user;
+      const token = response.accessToken || response.token;
+
+      if (!user || !token) {
+        return rejectWithValue('Invalid Google sign-in response from server');
+      }
+
+      const normalizedRole = normalizeUserRole(user.role);
+      user.role = normalizedRole;
+
+      await storageService.setToken(token);
+      return { user, token, role: normalizedRole };
+    } catch (error: any) {
+      const body = error.response?.data;
+      return rejectWithValue({
+        code: body?.code || null,
+        message: body?.message || 'Google sign-in failed. Please try again.',
+        data: body?.data || null,
+      });
+    }
+  }
+);
+
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   try {
     const fcmToken = await loadFcmToken().catch(() => null);
@@ -216,6 +249,35 @@ const authSlice = createSlice({
         state.token = null;
         state.role = null;
         state.error = (action.payload as string) || 'Login failed';
+      })
+      // ── Google Sign-In ──────────────────────────────────────────────
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = {
+          ...action.payload.user,
+          isFaceEnrolled: action.payload.user?.isFaceEnrolled ?? false,
+          isFaceVerified: true, // Google users bypass face-verification
+        };
+        state.token = action.payload.token;
+        state.role = action.payload.role;
+        state.error = null;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        state.role = null;
+        // GOOGLE_ROLE_REQUIRED is a normal UI step — don't surface as an error
+        const payload = action.payload as any;
+        state.error = payload?.code === 'GOOGLE_ROLE_REQUIRED'
+          ? null
+          : payload?.message || 'Google sign-in failed';
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;

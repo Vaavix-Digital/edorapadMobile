@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     REFRESH: '/api/auth/refresh',
     FORGOT_PASSWORD: '/api/auth/forgot-password',
     RESET_PASSWORD: '/api/auth/reset-password',
+    GOOGLE: '/api/auth/google',
     VERIFY_FACE: '/api/auth/face-verify',
     FACE_INIT: '/api/auth/face-init',
     FACE_CHALLENGE: '/api/auth/face-challenge',
