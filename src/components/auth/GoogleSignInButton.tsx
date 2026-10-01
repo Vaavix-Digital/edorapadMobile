@@ -32,10 +32,17 @@ import { googleLogin } from '../../store/slices/authSlice';
 import { THEME } from '../../shared/constants/theme';
 
 // ─── Config ────────────────────────────────────────────────────────────────
-const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
-const WEB_CLIENT_ID     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
-const REDIRECT_URI      = 'edorapad://oauth';
-const TOKEN_ENDPOINT    = 'https://oauth2.googleapis.com/token';
+const ANDROID_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
+  '82156580571-vfpd2k5ji28ccrdbo5mg3vq3mtcp76sm.apps.googleusercontent.com';
+const WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  '82156580571-hlhlp7d50i0tbnc7ci99hulprk2jio31.apps.googleusercontent.com';
+const IOS_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
+  '82156580571-v9clpj5gibavqtoludtse3v51hhguvpk.apps.googleusercontent.com';
+const REDIRECT_URI = 'edorapad://oauth';
+const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
 // ─── Pure-JS PKCE helpers (no native modules) ──────────────────────────────
 
