@@ -36,6 +36,9 @@
     },
     "plugins": [
       [
+        "@react-native-google-signin/google-signin"
+      ],
+      [
         "@react-native-firebase/app",
         {
           "ios": {
@@ -72,7 +75,8 @@
           "sounds": []
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
