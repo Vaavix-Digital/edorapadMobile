@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppSelector, useAppDispatch } from '../store';
 import { setInitialized, normalizeUserRole, setUserFaceState } from '../store/slices/authSlice';
@@ -14,7 +14,7 @@ import { StudentTabNavigator } from './StudentTabNavigator';
 import { ParentTabNavigator } from './ParentTabNavigator';
 import { AccountsTabNavigator } from './AccountsTabNavigator';
 import { FaceVerificationScreen } from '../screens/common/FaceVerificationScreen';
-import { initPushTokenListeners, syncPushTokenWithBackend } from '../services/push';
+import { initPushTokenListeners, syncPushTokenWithBackend, startPushListeners } from '../services/push';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +30,7 @@ const FACE_VERIFY_ROLES = [
 
 export const RootNavigator = () => {
   const dispatch = useAppDispatch();
+  const navigationRef = useNavigationContainerRef();
   const { isAuthenticated, role, isInitialized, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
@@ -48,10 +49,18 @@ export const RootNavigator = () => {
       syncPushTokenWithBackend();
     }
 
+    // Step 9 & 10: Start push listeners (foreground banners, background & closed app taps, route navigation)
+    const unsubscribePushListeners = startPushListeners((screen, params) => {
+      if (navigationRef.isReady()) {
+        (navigationRef as any).navigate(screen, params);
+      }
+    });
+
     return () => {
       unsubscribeTokenRefresh();
+      unsubscribePushListeners();
     };
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, navigationRef]);
 
   const normalizedRole = normalizeUserRole(role || user?.role);
 
@@ -84,7 +93,7 @@ export const RootNavigator = () => {
   };
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           /* ── Not logged in: show auth flows ── */

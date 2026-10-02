@@ -126,14 +126,25 @@ export const loginUser = createAsyncThunk(
  */
 export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
-  async (payload: { credential: string; role?: string }, { rejectWithValue }) => {
+  async (payload: { credential?: string; idToken?: string; role?: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.googleLogin(payload);
+      const fcmToken = await getFcmToken().catch(() => null);
+
+      const response = await authApi.googleLogin({
+        ...payload,
+        ...(fcmToken ? { fcmToken, platform: devicePlatform } : {}),
+      });
+
       const user = response.data || response.user;
       const token = response.accessToken || response.token;
 
       if (!user || !token) {
         return rejectWithValue('Invalid Google sign-in response from server');
+      }
+
+      const savedToken = (response as any).data?.fcmToken || fcmToken;
+      if (savedToken) {
+        await saveFcmToken(savedToken).catch(() => {});
       }
 
       const normalizedRole = normalizeUserRole(user.role);

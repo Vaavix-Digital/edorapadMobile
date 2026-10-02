@@ -59,10 +59,25 @@ export const authApi = {
    * A new user must supply `role`; existing users can omit it.
    */
   googleLogin: async (payload: {
-    credential: string;
+    idToken?: string;
+    credential?: string;
     role?: string;
+    fcmToken?: string;
+    platform?: string;
   }): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.GOOGLE, payload);
+    const tokenStr = payload.idToken || payload.credential;
+    const body: Record<string, any> = {
+      idToken: tokenStr,
+      credential: payload.credential || tokenStr,
+      ...(payload.role ? { role: payload.role } : {}),
+      ...(payload.fcmToken
+        ? {
+            fcmToken: payload.fcmToken,
+            platform: payload.platform || 'android',
+          }
+        : {}),
+    };
+    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.GOOGLE, body);
     return response.data;
   },
 

@@ -146,3 +146,125 @@ export async function syncPushTokenWithBackend(): Promise<void> {
     console.warn('[Push] Failed to sync device token on app start:', error);
   }
 }
+
+let notifeeModule: any = null;
+let AndroidImportance: any = { HIGH: 4 };
+let EventType: any = { PRESS: 1 };
+try {
+  const notifee = require('@notifee/react-native');
+  notifeeModule = notifee.default || notifee;
+  if (notifee.AndroidImportance) AndroidImportance = notifee.AndroidImportance;
+  if (notifee.EventType) EventType = notifee.EventType;
+} catch (e) {
+  console.warn('[Push] @notifee/react-native not available in current runtime:', e);
+}
+
+/**
+ * Route user based on push notification data payload type
+ */
+export function routeForPush(data: any, navigate?: (screen: string, params?: any) => void) {
+  if (!data || !navigate) return;
+
+  switch (data.type) {
+    case 'COURSE':
+      return navigate('CourseNotifications');
+
+    case 'STAFF':
+    case 'INSTITUTE':
+      return navigate('InstituteNotifications');
+
+    default:
+      return navigate('Notifications', {
+        id: data.notificationId,
+      });
+  }
+}
+
+/**
+ * Start push listeners for foreground notifications, background taps, and closed app taps
+ */
+export function startPushListeners(navigate?: (screen: string, params?: any) => void): () => void {
+  const unsubscribers: Array<() => void> = [];
+
+  if (!messagingModule) {
+    return () => {};
+  }
+
+  const openFrom = (data: any) => {
+    if (data && navigate) {
+      routeForPush(data, navigate);
+    }
+  };
+
+  try {
+    // 1. Foreground notification handler (display banner using Notifee)
+    const unsubForeground = messagingModule().onMessage(async (msg: any) => {
+      console.log('[Push] Foreground message received:', msg);
+      if (notifeeModule) {
+        try {
+          const channelId = await notifeeModule.createChannel({
+            id: 'default',
+            name: 'General',
+            importance: AndroidImportance.HIGH,
+          });
+
+          await notifeeModule.displayNotification({
+            title: msg.notification?.title || msg.data?.title || 'Notification',
+            body: msg.notification?.body || msg.data?.body || '',
+            data: msg.data,
+            android: {
+              channelId,
+              pressAction: {
+                id: 'default',
+              },
+            },
+          });
+        } catch (err) {
+          console.warn('[Push] Error displaying Notifee notification:', err);
+        }
+      }
+    });
+    unsubscribers.push(unsubForeground);
+
+    // 2. Notification tap handler when app was in background
+    const unsubOpenedApp = messagingModule().onNotificationOpenedApp((msg: any) => {
+      console.log('[Push] Notification opened app from background:', msg);
+      openFrom(msg?.data);
+    });
+    unsubscribers.push(unsubOpenedApp);
+
+    // 3. Notification tap handler when app was completely closed
+    messagingModule()
+      .getInitialNotification()
+      .then((msg: any) => {
+        if (msg) {
+          console.log('[Push] Notification opened app from closed state:', msg);
+          openFrom(msg?.data);
+        }
+      })
+      .catch((err: any) => {
+        console.warn('[Push] getInitialNotification error:', err);
+      });
+
+    // 4. Notifee foreground press event listener
+    if (notifeeModule && typeof notifeeModule.onForegroundEvent === 'function') {
+      const unsubNotifee = notifeeModule.onForegroundEvent(({ type, detail }: any) => {
+        if (type === EventType.PRESS) {
+          openFrom(detail.notification?.data);
+        }
+      });
+      unsubscribers.push(unsubNotifee);
+    }
+  } catch (error) {
+    console.warn('[Push] Error setting up push notification listeners:', error);
+  }
+
+  return () => {
+    unsubscribers.forEach((unsub) => {
+      try {
+        unsub();
+      } catch {}
+    });
+  };
+}
+

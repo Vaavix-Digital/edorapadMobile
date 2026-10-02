@@ -1,23 +1,39 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 import { authApi } from '../shared/api/authApi';
 import { storageService } from './storage';
 import { STORAGE_KEYS } from '../shared/constants';
 
-// Configure foreground notification presentation behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const isExpoGo =
+  Constants.appOwnership === 'expo' ||
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Configure foreground notification presentation behavior safely (skip in Expo Go to avoid SDK 53+ push error)
+if (!isExpoGo) {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch (err) {
+    console.warn('[NotificationService] Failed to set notification handler:', err);
+  }
+}
 
 export const notificationService = {
   registerForPushNotifications: async (userId: string): Promise<string | null> => {
+    if (isExpoGo) {
+      console.warn('[Push] Push notifications are not supported inside Expo Go. Use a development build (npm run android).');
+      return null;
+    }
+
     if (!Device.isDevice) {
       console.log('Push notifications require a physical device');
       return null;
@@ -68,10 +84,21 @@ export const notificationService = {
   },
 
   addNotificationReceivedListener: (callback: (notification: Notifications.Notification) => void) => {
-    return Notifications.addNotificationReceivedListener(callback);
+    if (isExpoGo) return { remove: () => {} } as any;
+    try {
+      return Notifications.addNotificationReceivedListener(callback);
+    } catch {
+      return { remove: () => {} } as any;
+    }
   },
 
   addNotificationResponseReceivedListener: (callback: (response: Notifications.NotificationResponse) => void) => {
-    return Notifications.addNotificationResponseReceivedListener(callback);
+    if (isExpoGo) return { remove: () => {} } as any;
+    try {
+      return Notifications.addNotificationResponseReceivedListener(callback);
+    } catch {
+      return { remove: () => {} } as any;
+    }
   }
 };
+
