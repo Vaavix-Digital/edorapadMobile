@@ -8,6 +8,8 @@ import {
   Dimensions,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import Svg, { Circle, Path, Line as SvgLine, Rect, G, Text as SvgText } from 'react-native-svg';
 import {
   Users,
@@ -299,7 +301,8 @@ export const InstituteDashboardScreen = ({ navigation }: any) => {
   const pendingLeaves = leaves.filter((l) => l.status === 'Pending');
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -461,7 +464,7 @@ export const InstituteDashboardScreen = ({ navigation }: any) => {
           onLogout={() => dispatch(logoutUser())}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

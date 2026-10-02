@@ -11,6 +11,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Award, Download, Calendar, FileText, CheckCircle2, Eye } from 'lucide-react-native';
 import { Header } from '../../components/common/Header';
 import { Card } from '../../components/common/Card';
@@ -227,7 +229,8 @@ export const StudentCertificatesScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       {/* Header */}
       <View style={styles.header}>
         <Header
@@ -281,7 +284,7 @@ export const StudentCertificatesScreen = ({ navigation }: any) => {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

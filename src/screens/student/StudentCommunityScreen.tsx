@@ -14,6 +14,8 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import {
   Send,
   Users,
@@ -338,11 +340,13 @@ export const StudentCommunityScreen = ({ navigation }: any) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-    >
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+      >
       {/* Header */}
       <View style={styles.headerWrap}>
         <Header
@@ -467,7 +471,8 @@ export const StudentCommunityScreen = ({ navigation }: any) => {
         onClose={() => setSidebarOpen(false)}
       />
     </KeyboardAvoidingView>
-  );
+  </SafeAreaView>
+);
 };
 
 // ─── Styles ────────────────────────────────────────────────────────────────────

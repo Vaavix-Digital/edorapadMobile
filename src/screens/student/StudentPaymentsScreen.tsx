@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import {
   CreditCard,
   Receipt,
@@ -180,7 +182,8 @@ export const StudentPaymentsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       {/* Header */}
       <View style={styles.header}>
         <Header
@@ -392,7 +395,7 @@ export const StudentPaymentsScreen = ({ navigation }: any) => {
           </View>
         </Modal>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

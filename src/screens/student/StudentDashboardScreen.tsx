@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import Svg, { Circle } from 'react-native-svg';
 import {
   Video, Award, CreditCard, BookOpen, Clock, AlertCircle, Play,
@@ -166,7 +168,8 @@ export const StudentDashboardScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -404,7 +407,7 @@ export const StudentDashboardScreen = ({ navigation }: any) => {
           onLogout={() => dispatch(logoutUser())}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

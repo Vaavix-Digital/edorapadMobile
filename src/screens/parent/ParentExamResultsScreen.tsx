@@ -8,6 +8,8 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Award, BookOpen, Clock, Calendar, CheckCircle2, AlertCircle } from 'lucide-react-native';
 import { Header } from '../../components/common/Header';
 import { StudentSelector } from '../../components/parent/StudentSelector';
@@ -128,7 +130,8 @@ export const ParentExamResultsScreen = ({ navigation }: any) => {
     (activeTab === 'exam' ? 88 : activeTab === 'assignment' ? 93 : 98);
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -256,7 +259,7 @@ export const ParentExamResultsScreen = ({ navigation }: any) => {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

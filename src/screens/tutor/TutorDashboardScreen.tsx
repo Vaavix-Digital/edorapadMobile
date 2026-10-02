@@ -8,6 +8,8 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import {
   CheckCircle2,
   Circle,
@@ -61,7 +63,8 @@ export const TutorDashboardScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -359,7 +362,7 @@ export const TutorDashboardScreen = ({ navigation }: any) => {
         onClose={() => setIsCalendarOpen(false)}
         staffId={user?.id}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

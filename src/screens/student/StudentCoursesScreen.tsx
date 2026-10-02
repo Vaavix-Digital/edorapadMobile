@@ -10,6 +10,8 @@ import {
   TextInput,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { BookOpen, Search, Star, Clock } from 'lucide-react-native';
 import { Header } from '../../components/common/Header';
 import { THEME } from '../../shared/constants/theme';
@@ -183,7 +185,8 @@ export const StudentCoursesScreen = ({ navigation }: any) => {
   });
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       {/* Header */}
       <View style={styles.headerWrap}>
         <Header
@@ -252,7 +255,7 @@ export const StudentCoursesScreen = ({ navigation }: any) => {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

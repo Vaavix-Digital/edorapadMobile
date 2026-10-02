@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import {
   User,
   CreditCard,
@@ -236,7 +238,8 @@ export const StudentSettingsScreen = ({ navigation }: any) => {
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=DEE6E4&color=295651&size=200`;
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
       {/* Header */}
       <View style={styles.header}>
         <Header
@@ -769,7 +772,7 @@ export const StudentSettingsScreen = ({ navigation }: any) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
