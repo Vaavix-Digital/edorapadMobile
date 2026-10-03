@@ -43,7 +43,7 @@ const WEB_CLIENT_ID =
 
 const IOS_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
-  '82156580571-3m8vqlf9r61c02aqdfh8n922t34t5s5l.apps.googleusercontent.com';
+  '82156580571-v9clpj5gibavqtoludtse3v51hhguvpk.apps.googleusercontent.com';
 
 // ─── Role options ───────────────────────────────────────────────────────────
 

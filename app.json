@@ -12,6 +12,14 @@
       "bundleIdentifier": "com.edorapad.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.82156580571-v9clpj5gibavqtoludtse3v51hhguvpk",
+              "edorapad"
+            ]
+          }
+        ],
         "NSCameraUsageDescription": "Edorapad requires camera access for faculty/student face verification and profile photos.",
         "NSMicrophoneUsageDescription": "Edorapad requires microphone access for online live lecture participation.",
         "NSPhotoLibraryUsageDescription": "Edorapad requires photo library access to upload documents and profile images.",
