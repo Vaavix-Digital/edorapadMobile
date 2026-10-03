@@ -33,6 +33,8 @@ interface RoleOption {
 
 const ROLE_OPTIONS: RoleOption[] = [
   { label: 'Student', value: USER_ROLES.STUDENT },
+  { label: 'Institute', value: USER_ROLES.INSTITUTE },
+  { label: 'Course Creator', value: USER_ROLES.COURSE_CREATOR },
   { label: 'Online Tutor', value: USER_ROLES.ONLINETUTOR },
   { label: 'Offline Faculty', value: USER_ROLES.OFFLINETUTOR },
   { label: 'Parent', value: USER_ROLES.PARENT },

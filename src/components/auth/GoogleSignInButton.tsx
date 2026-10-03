@@ -84,6 +84,10 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
   // ── Tap handler ─────────────────────────────────────────────────────────
   const handlePress = async () => {
     setError('');
+    if (Platform.OS === 'web') {
+      setError('Native Google Sign-In is supported on Android & iOS mobile builds (APK / iOS app).');
+      return;
+    }
     setBusy(true);
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
