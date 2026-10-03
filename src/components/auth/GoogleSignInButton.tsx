@@ -41,6 +41,10 @@ const WEB_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
   '82156580571-hlhlp7d50i0tbnc7ci99hulprk2jio31.apps.googleusercontent.com';
 
+const IOS_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
+  '82156580571-3m8vqlf9r61c02aqdfh8n922t34t5s5l.apps.googleusercontent.com';
+
 // ─── Role options ───────────────────────────────────────────────────────────
 
 const ROLE_OPTIONS = [
@@ -67,7 +71,14 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
 
   // Configure Google Sign-In once on mount
   useEffect(() => {
-    GoogleSignin.configure({ webClientId: WEB_CLIENT_ID });
+    try {
+      GoogleSignin.configure({
+        webClientId: WEB_CLIENT_ID,
+        iosClientId: IOS_CLIENT_ID,
+      });
+    } catch (e) {
+      console.warn('[GoogleSignIn] Configure error:', e);
+    }
   }, []);
 
   // ── Tap handler ─────────────────────────────────────────────────────────
@@ -75,17 +86,18 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     setError('');
     setBusy(true);
     try {
-      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const response = await GoogleSignin.signIn();
       const idToken  = (response as any)?.data?.idToken ?? (response as any)?.idToken;
 
       if (!idToken) {
-        setError('Google sign-in did not return a token. Please try again.');
+        setError('Google sign-in did not return an idToken. Please try again.');
         return;
       }
 
       await sendToBackend(idToken);
     } catch (err: any) {
+      console.error('[GoogleSignIn] Error:', err);
       if (isErrorWithCode(err)) {
         if (err.code === statusCodes.SIGN_IN_CANCELLED) {
           // User cancelled — no error message needed
@@ -93,11 +105,13 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
           setError('Sign-in already in progress. Please wait.');
         } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
           setError('Google Play Services not available. Please update and try again.');
+        } else if (err.code === '10' || err.code === statusCodes.SIGN_IN_REQUIRED) {
+          setError(`Developer Error (${err.code}): Check SHA-1 / Package name in Firebase Console.`);
         } else {
-          setError('Google sign-in failed. Please try again.');
+          setError(`Google sign-in failed (${err.code || 'unknown'}): ${err.message || 'Please try again'}`);
         }
       } else {
-        setError('Google sign-in failed. Please try again.');
+        setError(`Google sign-in failed: ${err?.message || 'Please try again.'}`);
       }
     } finally {
       setBusy(false);
