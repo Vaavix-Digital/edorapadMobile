@@ -25,6 +25,8 @@ import { Button } from '../../components/common/Button';
 import { THEME } from '../../shared/constants/theme';
 import { authApi } from '../../shared/api/authApi';
 import { USER_ROLES } from '../../shared/types';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
+import { notificationService } from '../../services/notificationService';
 
 interface RoleOption {
   label: string;
@@ -214,6 +216,26 @@ export const SignupScreen = ({ navigation }: any) => {
               style={styles.submitButton}
             />
 
+            {/* OR Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign-In */}
+            <GoogleSignInButton
+              onLoggedIn={(payload) => {
+                const user = payload?.user;
+                if (user?.id) {
+                  notificationService.registerForPushNotifications(user.id);
+                }
+              }}
+            />
+
+            {/* Bottom Divider */}
+            <View style={styles.bottomDivider} />
+
             {/* Footer link to Login */}
             <View style={styles.footerRow}>
               <Text style={styles.footerText}>Already have an account? </Text>
@@ -350,6 +372,28 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: THEME.spacing.sm,
+    marginBottom: THEME.spacing.md,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: THEME.spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: THEME.colors.border,
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    color: THEME.colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  bottomDivider: {
+    height: 1,
+    backgroundColor: THEME.colors.borderLight,
+    marginTop: THEME.spacing.lg,
     marginBottom: THEME.spacing.md,
   },
   footerRow: {

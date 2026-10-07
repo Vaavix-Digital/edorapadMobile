@@ -8,7 +8,8 @@ export interface TokenProvider {
 }
 
 let activeTokenProvider: TokenProvider | null = null;
-let apiBaseUrl = 'https://server.edorapad.com';
+// let apiBaseUrl = 'https://server.edorapad.com';
+let apiBaseUrl = 'http://192.168.1.21:5002';
 
 export const configureApiClient = (options: {
   baseUrl: string;
@@ -69,6 +70,8 @@ export const createApiClient = (baseURL?: string): AxiosInstance => {
         error.response?.status === 401 &&
         !originalRequest._retry &&
         !originalRequest.url?.includes('/api/auth/login') &&
+        !originalRequest.url?.includes('/api/auth/google') &&
+        !originalRequest.url?.includes('/api/auth/signup') &&
         !originalRequest.url?.includes('/api/auth/refresh')
       ) {
         originalRequest._retry = true;

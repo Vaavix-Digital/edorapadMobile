@@ -36,7 +36,8 @@ export const RootNavigator = () => {
   useEffect(() => {
     // Configure API client with mobile SecureStore token provider
     configureApiClient({
-      baseUrl: 'https://server.edorapad.com',
+      // baseUrl: 'https://server.edorapad.com',
+      baseUrl: 'http://192.168.1.21:5002',
       tokenProvider: mobileTokenProvider,
     });
     dispatch(setInitialized());

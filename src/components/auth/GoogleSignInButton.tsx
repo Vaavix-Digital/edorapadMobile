@@ -25,6 +25,7 @@ import {
   StyleSheet,
   Modal,
   Image,
+  Platform,
 } from 'react-native';
 import {
   GoogleSignin,
@@ -39,11 +40,11 @@ import { THEME } from '../../shared/constants/theme';
 
 const WEB_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
-  '82156580571-hlhlp7d50i0tbnc7ci99hulprk2jio31.apps.googleusercontent.com';
+  '392496995218-mnd8edr9hbe7q5431vd73b270ta6lbnn.apps.googleusercontent.com';
 
 const IOS_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
-  '82156580571-v9clpj5gibavqtoludtse3v51hhguvpk.apps.googleusercontent.com';
+  '392496995218-omkl6b17bgvrh5u8o8rdddtifoss7vjc.apps.googleusercontent.com';
 
 // ─── Role options ───────────────────────────────────────────────────────────
 
@@ -92,10 +93,11 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const response = await GoogleSignin.signIn();
+      
       const idToken  = (response as any)?.data?.idToken ?? (response as any)?.idToken;
 
       if (!idToken) {
-        setError('Google sign-in did not return an idToken. Please try again.');
+        setError('Google sign-in did not return a valid credential. Please try again.');
         return;
       }
 
@@ -142,6 +144,15 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     }
   };
 
+  const handleCancelRole = async () => {
+    setPending(null);
+    try {
+      await GoogleSignin.signOut();
+    } catch (e) {
+      // ignore
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────
   return (
     <>
@@ -172,7 +183,7 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
         visible={!!pending}
         transparent
         animationType="fade"
-        onRequestClose={() => !busy && setPending(null)}
+        onRequestClose={() => !busy && handleCancelRole()}
       >
         <View style={styles.overlay}>
           <View style={styles.card}>
@@ -201,7 +212,7 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
             <View style={styles.actions}>
               <TouchableOpacity
                 style={[styles.btn, styles.btnCancel]}
-                onPress={() => setPending(null)}
+                onPress={handleCancelRole}
                 disabled={busy}
               >
                 <Text style={styles.btnCancelText}>Cancel</Text>

@@ -20,7 +20,7 @@
             ]
           }
         ],
-        "NSCameraUsageDescription": "Edorapad requires camera access for faculty/student face verification and profile photos.",
+        "NSCameraUsageDescription": "Edorapad requires camera access for identity verification and profile photos.",
         "NSMicrophoneUsageDescription": "Edorapad requires microphone access for online live lecture participation.",
         "NSPhotoLibraryUsageDescription": "Edorapad requires photo library access to upload documents and profile images.",
         "ITSAppUsesNonExemptEncryption": false
@@ -41,9 +41,7 @@
       ]
     },
     "plugins": [
-      [
-        "@react-native-google-signin/google-signin"
-      ],
+      "@react-native-google-signin/google-signin",
       [
         "@react-native-firebase/app",
         {
@@ -56,8 +54,8 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
             "minSdkVersion": 24,
             "buildToolsVersion": "35.0.0"
           },
@@ -90,11 +88,11 @@
       "expo-web-browser",
       "expo-secure-store"
     ],
+    "owner": "g344",
     "extra": {
       "eas": {
-        "projectId": "a42aaca1-0382-48be-9795-7167a7970e2d"
+        "projectId": "0fb21980-9cf5-41f0-bfa6-e6a24ac0bfed"
       }
-    },
-    "owner": "vavix"
+    }
   }
 }

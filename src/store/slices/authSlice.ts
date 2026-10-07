@@ -163,6 +163,8 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   try {
     const fcmToken = await loadFcmToken().catch(() => null);
@@ -172,6 +174,11 @@ export const logoutUser = createAsyncThunk('auth/logout', async () => {
     // Ignore server error on logout
   } finally {
     await storageService.clearAuthTokens().catch(() => {});
+    try {
+      await GoogleSignin.signOut();
+    } catch (e) {
+      // Ignore errors if not signed in with Google
+    }
   }
   return true;
 });
