@@ -31,6 +31,7 @@ import {
   GoogleSignin,
   statusCodes,
   isErrorWithCode,
+  isSuccessResponse,
 } from '@react-native-google-signin/google-signin';
 import { useAppDispatch } from '../../store';
 import { googleLogin } from '../../store/slices/authSlice';
@@ -93,6 +94,19 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const response = await GoogleSignin.signIn();
+      
+      // Handle the new v13+ response format
+      if (response && (response as any).type === 'cancelled') {
+        return; // User cancelled, silently exit
+      }
+
+      if (!isSuccessResponse(response)) {
+        if ((response as any)?.type === 'cancelled' || (response as any)?.type === 'dismissed') {
+           return;
+        }
+        setError('Google sign-in was not successful. Please try again.');
+        return;
+      }
       
       const idToken  = (response as any)?.data?.idToken ?? (response as any)?.idToken;
 
