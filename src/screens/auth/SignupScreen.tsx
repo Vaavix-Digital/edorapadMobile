@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../../store/slices/authSlice';
 import {
   View,
   Text,
@@ -27,6 +29,7 @@ import { authApi } from '../../shared/api/authApi';
 import { USER_ROLES } from '../../shared/types';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import { notificationService } from '../../services/notificationService';
+import { COUNTRY_CODES } from '../../shared/constants/countryCodes';
 
 interface RoleOption {
   label: string;
@@ -34,23 +37,23 @@ interface RoleOption {
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
-  { label: 'Student', value: USER_ROLES.STUDENT },
-  { label: 'Institute', value: USER_ROLES.INSTITUTE },
-  { label: 'Course Creator', value: USER_ROLES.COURSE_CREATOR },
-  { label: 'Online Tutor', value: USER_ROLES.ONLINETUTOR },
-  { label: 'Offline Faculty', value: USER_ROLES.OFFLINETUTOR },
-  { label: 'Parent', value: USER_ROLES.PARENT },
+  { label: 'Student', value: 'Student' },
+  { label: 'Institute', value: 'Institute' },
+  { label: 'Course Creator', value: 'Course Creator' },
 ];
 
 export const SignupScreen = ({ navigation }: any) => {
+  const dispatch = useDispatch();
   const [name, setName] = useState('');
-  const [role, setRole] = useState<string>(USER_ROLES.STUDENT);
+  const [role, setRole] = useState<string>('Student');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [roleModalVisible, setRoleModalVisible] = useState(false);
+  const [countryModalVisible, setCountryModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,8 +67,17 @@ export const SignupScreen = ({ navigation }: any) => {
       setError('Please enter your full name');
       return;
     }
+    if (name.trim().length < 3) {
+      setError('Name must be at least 3 characters');
+      return;
+    }
     if (!email.trim()) {
       setError('Please enter your email address');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError('Please enter a valid email address');
       return;
     }
     if (!password) {
@@ -80,6 +92,13 @@ export const SignupScreen = ({ navigation }: any) => {
       setError('Passwords do not match');
       return;
     }
+    if (phone.trim()) {
+      const rawPhone = phone.trim().replace(/[-\s]/g, '');
+      if (rawPhone.length < 7 || rawPhone.length > 15 || !/^[0-9]+$/.test(rawPhone)) {
+        setError('Phone number must be between 7 and 15 digits');
+        return;
+      }
+    }
 
     try {
       setLoading(true);
@@ -87,19 +106,35 @@ export const SignupScreen = ({ navigation }: any) => {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password,
-        role,
+        confirmPassword,
+        role: role || 'Student',
       };
       if (phone.trim()) {
-        payload.phone = phone.trim();
+        payload.phoneNumber = `${countryCode}${phone.trim().replace(/[-\s]/g, '')}`;
       }
 
       const res = await authApi.register(payload);
       if (res.success || res.token || res.accessToken) {
-        Alert.alert(
-          'Account Created',
-          'Your account has been created successfully. Please sign in.',
-          [{ text: 'Sign In', onPress: () => navigation.navigate('Login') }]
-        );
+        if (res.data?.isPhoneVerified === false && res.data?.phoneNumber) {
+          navigation.navigate('PhoneVerification', { 
+            phoneNumber: res.data.phoneNumber,
+            authResponse: res 
+          });
+        } else {
+          const token = res.accessToken || res.token;
+          if (token && res.data) {
+            dispatch(setCredentials({ user: res.data, token }));
+            if (res.data.id) {
+              notificationService.registerForPushNotifications(res.data.id);
+            }
+          } else {
+            Alert.alert(
+              'Account Created',
+              'Your account has been created successfully. Please sign in.',
+              [{ text: 'Sign In', onPress: () => navigation.navigate('Login') }]
+            );
+          }
+        }
       } else {
         setError(res.message || 'Registration failed. Please try again.');
       }
@@ -177,15 +212,31 @@ export const SignupScreen = ({ navigation }: any) => {
               leftIcon={<Mail size={18} color={THEME.colors.textMuted} />}
             />
 
-            {/* Phone Number */}
-            <Input
-              label="Phone Number"
-              placeholder="Enter your phone number"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              leftIcon={<Phone size={18} color={THEME.colors.textMuted} />}
-            />
+            {/* Phone Number with Country Code */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Phone Number</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                  style={[styles.selectBox, { flex: 0.17, marginRight: 8, height: 48, paddingHorizontal: 8 }]}
+                  onPress={() => setCountryModalVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.selectBoxText}>{countryCode}</Text>
+                  <ChevronDown size={16} color={THEME.colors.textMuted} />
+                </TouchableOpacity>
+                
+                <View style={{ flex: 0.83 }}>
+                  <Input
+                    placeholder="Enter phone number"
+                    keyboardType="phone-pad"
+                    value={phone}
+                    onChangeText={setPhone}
+                    // leftIcon={<Phone size={18} color={THEME.colors.textMuted} />}
+                    containerStyle={{ marginBottom: 0 }}
+                  />
+                </View>
+              </View>
+            </View>
 
             {/* Create Password */}
             <Input
@@ -287,6 +338,52 @@ export const SignupScreen = ({ navigation }: any) => {
                 </TouchableOpacity>
               );
             })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Country Code Modal */}
+      <Modal
+        visible={countryModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCountryModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCountryModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Country Code</Text>
+            <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={true}>
+              {COUNTRY_CODES.map((opt) => {
+                const isSelected = opt.value === countryCode;
+                return (
+                  <TouchableOpacity
+                    key={opt.label}
+                    style={[
+                      styles.modalOption,
+                      isSelected && styles.modalOptionSelected,
+                    ]}
+                    onPress={() => {
+                      setCountryCode(opt.value);
+                      setCountryModalVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                    {isSelected && <Check size={18} color={THEME.colors.primary} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>

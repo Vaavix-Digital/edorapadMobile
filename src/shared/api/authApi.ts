@@ -48,8 +48,18 @@ export const authApi = {
     return response.data;
   },
 
-  resetPassword: async (data: { identifier: string; otp: string; newPassword: string }): Promise<{ success: boolean; message: string }> => {
+  resetPassword: async (data: { identifier: string; otp: string; newPassword: string; confirmPassword: string }): Promise<{ success: boolean; message: string }> => {
     const response = await api.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data);
+    return response.data;
+  },
+
+  verifyPhone: async (data: { phoneNumber: string; otp: string }): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.VERIFY_PHONE, data);
+    return response.data;
+  },
+
+  resendOtp: async (data: { phoneNumber: string }): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(API_ENDPOINTS.AUTH.RESEND_OTP, data);
     return response.data;
   },
 

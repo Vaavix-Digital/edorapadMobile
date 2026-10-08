@@ -23,6 +23,8 @@ import {
   ShieldCheck,
 } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/common/ScreenContainer';
+import { Input } from '../../components/common/Input';
+import { Button } from '../../components/common/Button';
 import { THEME } from '../../shared/constants/theme';
 import { authApi } from '../../shared/api/authApi';
 
@@ -95,19 +97,19 @@ interface OtpBoxesProps {
 
 const OtpBoxes: React.FC<OtpBoxesProps> = ({ value, onChange }) => {
   const refs = useRef<(TextInput | null)[]>([]);
-  const digits = value.padEnd(6, '').split('').slice(0, 6);
+  const digits = value.padEnd(6, ' ').split('').slice(0, 6);
 
   const handleChange = (text: string, idx: number) => {
-    const char = text.replace(/\D/g, '').slice(-1);
+    const char = text.replace(/\D/g, '').slice(-1) || ' ';
     const next = digits.map((d, i) => (i === idx ? char : d));
-    onChange(next.join(''));
-    if (char && idx < 5) refs.current[idx + 1]?.focus();
+    onChange(next.join('').trim());
+    if (char !== ' ' && idx < 5) refs.current[idx + 1]?.focus();
   };
 
   const handleKeyPress = (e: any, idx: number) => {
     if (e.nativeEvent.key === 'Backspace') {
-      const next = digits.map((d, i) => (i === idx ? '' : d));
-      onChange(next.join(''));
+      const next = digits.map((d, i) => (i === idx ? ' ' : d));
+      onChange(next.join('').trim());
       if (idx > 0) refs.current[idx - 1]?.focus();
     }
   };
@@ -118,8 +120,8 @@ const OtpBoxes: React.FC<OtpBoxesProps> = ({ value, onChange }) => {
         <TextInput
           key={idx}
           ref={(el) => { refs.current[idx] = el; }}
-          style={[otpStyles.box, digits[idx] ? otpStyles.boxFilled : undefined]}
-          value={digits[idx] || ''}
+          style={[otpStyles.box, digits[idx] !== ' ' ? otpStyles.boxFilled : undefined]}
+          value={digits[idx] !== ' ' ? digits[idx] : ''}
           onChangeText={(t) => handleChange(t, idx)}
           onKeyPress={(e) => handleKeyPress(e, idx)}
           keyboardType="number-pad"
@@ -369,6 +371,7 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
         identifier: identifier.trim(),
         otp: otp.trim(),
         newPassword,
+        confirmPassword,
       });
       notify(res.message || 'Password reset successfully!');
       setSuccess(true);
@@ -455,12 +458,13 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
                 {/* ── STEP 1: Email / ID ── */}
                 {step === 1 && (
                   <>
-                    <Field
+                    <Input
                       label="Email Address / User ID"
                       value={identifier}
                       onChangeText={setIdentifier}
-                      placeholder="e.g. teamvaavix@gmail.com"
-                      icon={<Mail size={16} color="#94A3B8" />}
+                      placeholder="e.g. yourname@gmail.com"
+                      autoCapitalize="none"
+                      leftIcon={<Mail size={16} color="#94A3B8" />}
                     />
                     <TouchableOpacity
                       style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
@@ -524,29 +528,26 @@ export const ResetPasswordScreen = ({ navigation }: any) => {
                 {/* ── STEP 3: New Password ── */}
                 {step === 3 && (
                   <>
-                    <Field
+                    <Input
                       label="New Password"
                       value={newPassword}
                       onChangeText={setNewPassword}
                       placeholder="Minimum 6 characters"
                       isPassword
-                      icon={<Lock size={16} color="#94A3B8" />}
+                      leftIcon={<Lock size={16} color="#94A3B8" />}
                     />
                     <StrengthBar password={newPassword} />
 
                     <View style={{ marginTop: 14 }}>
-                      <Field
+                      <Input
                         label="Confirm Password"
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
                         placeholder="Re-enter your password"
                         isPassword
-                        icon={<Lock size={16} color="#94A3B8" />}
-                        error={confirmPassword.length > 0 && confirmPassword !== newPassword}
+                        leftIcon={<Lock size={16} color="#94A3B8" />}
+                        error={confirmPassword.length > 0 && confirmPassword !== newPassword ? "Passwords do not match" : undefined}
                       />
-                      {confirmPassword.length > 0 && confirmPassword !== newPassword && (
-                        <Text style={styles.mismatchText}>Passwords do not match</Text>
-                      )}
                     </View>
 
                     <TouchableOpacity
