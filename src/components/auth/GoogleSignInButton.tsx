@@ -180,7 +180,7 @@ const GoogleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
           <ActivityIndicator size="small" color={THEME.colors.textSecondary} />
         ) : (
           <Image
-            source={require('./google-logo.png')}
+            source={require('./google-logo.jpg')}
             style={styles.googleLogo}
             resizeMode="contain"
           />
