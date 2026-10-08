@@ -27,6 +27,7 @@ import {
   BookOpen,
   LogOut,
   ShieldCheck,
+  UserMinus,
 } from 'lucide-react-native';
 import { Header } from '../../components/common/Header';
 import { Card } from '../../components/common/Card';
@@ -40,6 +41,7 @@ import { InstituteProfileScreen } from '../institute/InstituteProfileScreen';
 import { ParentProfileScreen } from '../parent/ParentProfileScreen';
 import { TutorProfileScreen } from '../tutor/TutorProfileScreen';
 import { USER_ROLES } from '../../shared/types';
+import { authApi } from '../../shared/api/authApi';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -83,6 +85,33 @@ export const ProfileScreen = ({ navigation }: any) => {
         onPress: () => dispatch(logoutUser()),
       },
     ]);
+  };
+
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsDeletingAccount(true);
+              await authApi.deleteAccount();
+              dispatch(logoutUser());
+            } catch (err: any) {
+              Alert.alert('Error', err.response?.data?.message || err.message || 'Failed to delete account');
+            } finally {
+              setIsDeletingAccount(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const studentName = settings?.name || user?.name || 'Shrihari Nambiar p';
@@ -323,9 +352,23 @@ export const ProfileScreen = ({ navigation }: any) => {
               style={styles.signOutBtn}
               onPress={handleLogout}
               activeOpacity={0.85}
+              disabled={isDeletingAccount}
             >
               <LogOut size={18} color="#FFF" />
               <Text style={styles.signOutBtnText}>Sign Out</Text>
+            </TouchableOpacity>
+
+            {/* Delete Account Button */}
+            <TouchableOpacity
+              style={styles.deleteAccountBtn}
+              onPress={handleDeleteAccount}
+              activeOpacity={0.85}
+              disabled={isDeletingAccount}
+            >
+              <UserMinus size={18} color="#EF4444" />
+              <Text style={styles.deleteAccountBtnText}>
+                {isDeletingAccount ? 'Deleting Account...' : 'Delete Account'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -632,6 +675,25 @@ const styles = StyleSheet.create({
   },
   signOutBtnText: {
     color: '#FFFFFF',
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
+
+  // ── Delete Account Button ──
+  deleteAccountBtn: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: THEME.borderRadius.md,
+    borderWidth: 1.5,
+    borderColor: '#FEE2E2',
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
+  deleteAccountBtnText: {
+    color: '#EF4444',
     fontSize: 14.5,
     fontWeight: '700',
   },

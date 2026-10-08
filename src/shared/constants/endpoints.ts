@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     RESEND_OTP: '/api/auth/resend-otp',
     VERIFY_PHONE_SECURE: '/api/auth/verify-phone-secure',
     RESEND_OTP_SECURE: '/api/auth/resend-otp-secure',
+    DELETE_ACCOUNT: '/api/auth/delete-account',
     VERIFY_FACE: '/api/auth/face-verify',
     FACE_INIT: '/api/auth/face-init',
     FACE_CHALLENGE: '/api/auth/face-challenge',

@@ -297,6 +297,15 @@ export const authApi = {
       data: resData?.data || resData,
     };
   },
+
+  /**
+   * Deactivate/soft-delete the user's account
+   * DELETE /api/auth/delete-account
+   */
+  deleteAccount: async (): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete(API_ENDPOINTS.AUTH.DELETE_ACCOUNT);
+    return response.data;
+  },
 };
 
 
