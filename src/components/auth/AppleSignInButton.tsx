@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ActivityIndicator, Alert, Modal, TouchableOpacity } from 'react-native';
-import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { THEME } from '../../shared/constants/theme';
 import { notificationService } from '../../services/notificationService';
+import { storageService } from '../../services/storage';
+import { STORAGE_KEYS } from '../../shared/constants';
+import { useAppDispatch } from '../../store';
+import { setCredentials, normalizeUserRole } from '../../store/slices/authSlice';
+import Svg, { Path } from 'react-native-svg';
 
-const API_URL = 'http://192.168.1.13:5002';
+const API_URL = 'https://server.edorapad.com';
 
 const ROLE_OPTIONS = [
-  { value: 'Student',        label: 'Student',        hint: 'Join courses and classes' },
+  { value: 'Student', label: 'Student', hint: 'Join courses and classes' },
   { value: 'Course Creator', label: 'Course Creator', hint: 'Create and sell your own courses' },
-  { value: 'Institute',      label: 'Institute',      hint: 'Run your institute, staff and students' },
+  { value: 'Institute', label: 'Institute', hint: 'Run your institute, staff and students' },
 ];
 
 interface Props {
@@ -17,21 +22,29 @@ interface Props {
 }
 
 const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
+  const dispatch = useAppDispatch();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [showRolePicker, setShowRolePicker] = useState(false);
   const [pendingAuth, setPendingAuth] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState(ROLE_OPTIONS[0].value);
+  const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
 
-  if (Platform.OS !== 'ios' || !appleAuth.isSupported) {
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable);
+    }
+  }, []);
+
+  if (Platform.OS !== 'ios' || !isAppleAuthAvailable) {
     return null;
   }
 
   const handleApiLogin = async (authData: any, role?: string) => {
     try {
-      const fcmToken = await notificationService.getDeviceToken();
-      
+      const fcmToken = await storageService.getItem(STORAGE_KEYS.PUSH_TOKEN) || null;
+
       const body = {
         identityToken: authData.identityToken,
         authorizationCode: authData.authorizationCode,
@@ -41,8 +54,6 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
         platform: 'ios',
         ...(role ? { role } : {}),
       };
-
-      console.log('🚀 Sending Apple Login Request with FCM Token:', body.fcmToken);
 
       const response = await fetch(`${API_URL}/api/auth/apple`, {
         method: 'POST',
@@ -61,8 +72,18 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
         throw new Error(json.message || 'Apple login failed');
       }
 
+      const user = json.user || json.data;
+      const token = json.accessToken || json.token;
+
+      if (user && token) {
+        await storageService.setToken(token);
+        const normalizedRole = normalizeUserRole(user.role);
+        dispatch(setCredentials({ user: { ...user, role: normalizedRole }, token, role: normalizedRole }));
+      }
+
       onLoggedIn(json);
     } catch (err: any) {
+      console.log('Apple Sign-In API Error:', err);
       setError(err.message || 'An error occurred during Apple sign-in.');
     } finally {
       setBusy(false);
@@ -73,18 +94,18 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
     setError('');
     setBusy(true);
     try {
-      const res = await appleAuth.performRequest({
-        requestedOperation: appleAuth.Operation.LOGIN,
+      const res = await AppleAuthentication.signInAsync({
         requestedScopes: [
-          appleAuth.Scope.EMAIL,
-          appleAuth.Scope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         ],
       });
 
       await handleApiLogin(res);
     } catch (e: any) {
+      console.log('Apple Sign-In Auth Error:', e);
       setBusy(false);
-      if (e.code === appleAuth.Error.CANCELED) {
+      if (e.code === 'ERR_REQUEST_CANCELED') {
         // User canceled, silently ignore
       } else {
         setError(e.message || 'Apple sign-in failed. Please try again.');
@@ -109,12 +130,18 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
             <Text style={styles.busyText}>Signing in...</Text>
           </View>
         ) : (
-          <AppleButton
-            buttonStyle={AppleButton.Style.BLACK}
-            buttonType={AppleButton.Type.SIGN_IN}
-            style={styles.appleButton}
+          <TouchableOpacity
+            style={styles.customAppleButton}
             onPress={handlePress}
-          />
+            activeOpacity={0.8}
+          >
+            <Svg width="20" height="20" viewBox="0 0 384 512" fill={THEME.colors.textPrimary}>
+              <Path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+            </Svg>
+            <Text style={styles.customAppleButtonText}>
+              Continue with Apple
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -124,9 +151,9 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Choose your role</Text>
             <Text style={styles.modalSubtitle}>How will you use Edorapad?</Text>
-            
+
             {ROLE_OPTIONS.map(role => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={role.value}
                 style={[
                   styles.roleOption,
@@ -142,14 +169,14 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
               </TouchableOpacity>
             ))}
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.submitButton}
               onPress={handleRoleSubmit}
             >
               <Text style={styles.submitButtonText}>Continue</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setShowRolePicker(false)}
             >
@@ -166,15 +193,27 @@ const styles = StyleSheet.create({
   container: {
     marginTop: THEME.spacing.sm,
   },
-  appleButton: {
-    width: '100%',
-    height: 48,
+  customAppleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 51,
+    borderWidth: 1.5,
+    borderColor: THEME.colors.border,
+    borderRadius: THEME.borderRadius.lg,
+    backgroundColor: '#fff',
+  },
+  customAppleButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: THEME.colors.textPrimary,
   },
   busyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 48,
+    height: 51,
     borderWidth: 1.5,
     borderColor: THEME.colors.border,
     borderRadius: THEME.borderRadius.lg,
