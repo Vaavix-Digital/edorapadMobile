@@ -432,9 +432,9 @@ export const InstituteDashboardScreen = ({ navigation }: any) => {
         {(batches.length > 0
           ? batches
           : [
-              { name: 'TC-MAR-01', courseName: 'General Academic Course', schedule: 'Regular Class Schedule', totalStudents: 0, status: 'Active' },
-              { name: 'GLB MRN EVE 101', courseName: 'General Academic Course', schedule: 'Regular Class Schedule', totalStudents: 0, status: 'Active' },
-            ]
+            { name: 'TC-MAR-01', courseName: 'General Academic Course', schedule: 'Regular Class Schedule', totalStudents: 0, status: 'Active' },
+            { name: 'GLB MRN EVE 101', courseName: 'General Academic Course', schedule: 'Regular Class Schedule', totalStudents: 0, status: 'Active' },
+          ]
         )
           .slice(0, 4)
           .map((batch: any, index: number) => (

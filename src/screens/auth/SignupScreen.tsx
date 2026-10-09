@@ -28,6 +28,7 @@ import { THEME } from '../../shared/constants/theme';
 import { authApi } from '../../shared/api/authApi';
 import { USER_ROLES } from '../../shared/types';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
+import AppleSignInButton from '../../components/auth/AppleSignInButton';
 import { notificationService } from '../../services/notificationService';
 import { COUNTRY_CODES } from '../../shared/constants/countryCodes';
 
@@ -283,6 +284,18 @@ export const SignupScreen = ({ navigation }: any) => {
                 }
               }}
             />
+
+            {/* Apple Sign-In */}
+            {Platform.OS === 'ios' && (
+              <AppleSignInButton
+                onLoggedIn={(payload) => {
+                  const user = payload?.user;
+                  if (user?.id) {
+                    notificationService.registerForPushNotifications(user.id);
+                  }
+                }}
+              />
+            )}
 
             {/* Bottom Divider */}
             <View style={styles.bottomDivider} />

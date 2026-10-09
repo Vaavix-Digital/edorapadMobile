@@ -131,8 +131,7 @@ export const StudentAssessmentsScreen = ({ navigation }: any) => {
     } else {
       Alert.alert(
         'Start Assessment',
-        `Assessment: ${exam.title}\nTotal Marks: ${exam.totalMarks || 100}\nPass Marks: ${
-          exam.passMarks ?? exam.passingMarks ?? 40
+        `Assessment: ${exam.title}\nTotal Marks: ${exam.totalMarks || 100}\nPass Marks: ${exam.passMarks ?? exam.passingMarks ?? 40
         }\nDue Date: ${formatDate(exam.dueDate || exam.date)}`,
         [
           { text: 'Cancel', style: 'cancel' },
@@ -159,14 +158,14 @@ export const StudentAssessmentsScreen = ({ navigation }: any) => {
     const statusBadgeStyle = isCompleted
       ? styles.statusCompleted
       : isSubmitted
-      ? styles.statusSubmitted
-      : styles.statusPending;
+        ? styles.statusSubmitted
+        : styles.statusPending;
 
     const statusTextStyle = isCompleted
       ? styles.statusCompletedText
       : isSubmitted
-      ? styles.statusSubmittedText
-      : styles.statusPendingText;
+        ? styles.statusSubmittedText
+        : styles.statusPendingText;
 
     return (
       <Card style={styles.examCard}>

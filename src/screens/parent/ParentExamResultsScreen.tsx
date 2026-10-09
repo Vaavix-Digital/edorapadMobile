@@ -176,8 +176,8 @@ export const ParentExamResultsScreen = ({ navigation }: any) => {
               {activeTab === 'exam'
                 ? 'Exams Taken'
                 : activeTab === 'assignment'
-                ? 'Assignments Taken'
-                : 'Quizzes Taken'}
+                  ? 'Assignments Taken'
+                  : 'Quizzes Taken'}
             </Text>
             <Text style={styles.statValue}>{totalCount}</Text>
           </View>
@@ -202,8 +202,8 @@ export const ParentExamResultsScreen = ({ navigation }: any) => {
               {activeTab === 'exam'
                 ? 'Exam Scorecards'
                 : activeTab === 'assignment'
-                ? 'Assignment Submissions'
-                : 'Quiz Records'}
+                  ? 'Assignment Submissions'
+                  : 'Quiz Records'}
             </Text>
           </View>
 

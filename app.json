@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "com.edorapad.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {

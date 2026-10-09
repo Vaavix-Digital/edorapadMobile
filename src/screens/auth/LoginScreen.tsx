@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { loginUser, clearAuthError } from '../../store/slices/authSlice';
 import { notificationService } from '../../services/notificationService';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
-
+import AppleSignInButton from '../../components/auth/AppleSignInButton';
 export const LoginScreen = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
@@ -130,6 +130,18 @@ export const LoginScreen = ({ navigation }: any) => {
                 }
               }}
             />
+
+            {/* Apple Sign-In */}
+            {Platform.OS === 'ios' && (
+              <AppleSignInButton
+                onLoggedIn={(payload) => {
+                  const user = payload?.user;
+                  if (user?.id) {
+                    notificationService.registerForPushNotifications(user.id);
+                  }
+                }}
+              />
+            )}
 
             {/* Bottom Divider */}
             <View style={styles.bottomDivider} />

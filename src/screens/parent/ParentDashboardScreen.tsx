@@ -152,14 +152,14 @@ export const ParentDashboardScreen = ({ navigation }: any) => {
 
   const selectedStudentItem = activeStudentId
     ? students.find(
-        (s) =>
-          s?.studentInfo?.id === activeStudentId ||
-          s?.studentInfo?._id === activeStudentId ||
-          s?.studentId === activeStudentId ||
-          s?.student === activeStudentId ||
-          s?.id === activeStudentId ||
-          s?._id === activeStudentId
-      ) || students[0]
+      (s) =>
+        s?.studentInfo?.id === activeStudentId ||
+        s?.studentInfo?._id === activeStudentId ||
+        s?.studentId === activeStudentId ||
+        s?.student === activeStudentId ||
+        s?.id === activeStudentId ||
+        s?._id === activeStudentId
+    ) || students[0]
     : students[0];
 
   const studentInfo = selectedStudentItem?.studentInfo || selectedStudentItem || {};
@@ -218,25 +218,25 @@ export const ParentDashboardScreen = ({ navigation }: any) => {
   // Filter notifications for active child
   const filteredNotifications = activeStudentId
     ? notifications.filter(
-        (n: any) =>
-          n?.studentInfo?.id === activeStudentId ||
-          n?.studentInfo?._id === activeStudentId ||
-          n?.studentId === activeStudentId ||
-          n?.student === activeStudentId ||
-          !n?.studentId
-      )
+      (n: any) =>
+        n?.studentInfo?.id === activeStudentId ||
+        n?.studentInfo?._id === activeStudentId ||
+        n?.studentId === activeStudentId ||
+        n?.student === activeStudentId ||
+        !n?.studentId
+    )
     : notifications;
 
   // Filter pending exams for active child
   const filteredPendingExams = activeStudentId
     ? pendingExams.filter(
-        (exam: any) =>
-          exam?.studentInfo?.id === activeStudentId ||
-          exam?.studentInfo?._id === activeStudentId ||
-          exam?.studentId === activeStudentId ||
-          exam?.student === activeStudentId ||
-          !exam?.studentId
-      )
+      (exam: any) =>
+        exam?.studentInfo?.id === activeStudentId ||
+        exam?.studentInfo?._id === activeStudentId ||
+        exam?.studentId === activeStudentId ||
+        exam?.student === activeStudentId ||
+        !exam?.studentId
+    )
     : pendingExams;
 
   // Get active student attendance percentage
