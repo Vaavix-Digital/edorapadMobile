@@ -79,10 +79,13 @@ export const loginUser = createAsyncThunk(
       // Step 4: Obtain FCM token before login
       const fcmToken = await getFcmToken().catch(() => null);
 
-      const response = await authApi.login({
+      const loginPayload = {
         ...credentials,
         ...(fcmToken ? { fcmToken, platform: devicePlatform } : {}),
-      });
+      };
+      console.log('🚀 Sending Normal Login Request with FCM Token:', fcmToken);
+
+      const response = await authApi.login(loginPayload);
 
       const user = response.data || response.user;
       const token = response.accessToken || response.token;
@@ -130,10 +133,13 @@ export const googleLogin = createAsyncThunk(
     try {
       const fcmToken = await getFcmToken().catch(() => null);
 
-      const response = await authApi.googleLogin({
+      const googlePayload = {
         ...payload,
         ...(fcmToken ? { fcmToken, platform: devicePlatform } : {}),
-      });
+      };
+      console.log('🚀 Sending Google Login Request with FCM Token:', fcmToken);
+
+      const response = await authApi.googleLogin(googlePayload);
 
       const user = response.data || response.user;
       const token = response.accessToken || response.token;

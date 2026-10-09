@@ -20,6 +20,9 @@ export const authApi = {
       payload.fcmToken = fcmToken;
       payload.platform = platform || 'android';
     }
+    
+    console.log('🚀 Final Login API Request Body:', JSON.stringify(payload, null, 2));
+    
     const response = await api.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, payload);
     return response.data;
   },

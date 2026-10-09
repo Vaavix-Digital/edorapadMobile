@@ -42,6 +42,8 @@ const AppleSignInButton: React.FC<Props> = ({ onLoggedIn }) => {
         ...(role ? { role } : {}),
       };
 
+      console.log('🚀 Sending Apple Login Request with FCM Token:', body.fcmToken);
+
       const response = await fetch(`${API_URL}/api/auth/apple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
