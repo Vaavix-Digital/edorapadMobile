@@ -8,8 +8,8 @@ export interface TokenProvider {
 }
 
 let activeTokenProvider: TokenProvider | null = null;
-let apiBaseUrl = 'https://server.edorapad.com';
-// let apiBaseUrl = 'http://192.168.1.21:5002';
+let apiBaseUrl = 'http://192.168.1.13:5002';
+// let apiBaseUrl = 'https://server.edorapad.com';
 
 export const configureApiClient = (options: {
   baseUrl: string;
